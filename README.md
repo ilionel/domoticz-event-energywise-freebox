@@ -4,16 +4,16 @@ Script python de type « domoticz  events» qui éteint (grâce à un smartplu
 Une Freebox (révolution) consomme environ 150kW/an (soit environ 2eur/mois). Ce script vous permet de réaliser des économies d’exergie en pilotant l’allumage et l’extension de la Freebox.
 
 ## Prérequis :
-Ce script utilise les informations remontées par le plugin PluginDomoticzFreebox (https://github.com/ilionel/PluginDomoticzFreebox) pour couper la Freebox (via une prise connectée) si cette dernière n'est pas utilisée.
+Ce script utilise les informations remontées par le plugin PluginDomoticzFreebox (https://github.com/ilionel/PluginDomoticzFreebox) pour couper la Freebox (via une prise connectée) quand cette dernière n'est pas utilisée.
 
 ## Comment le script fonctionne ?
-Le script éteint (et pourra aussi rallumer) la prise connectée (ici nommé Freebox) lorsque arrivée à une heure donnée la Freebox est inutilisée.
+Le script éteint (et pourra aussi rallumer) la prise connectée (ici nommé Freebox) après une heure donnée, mais seulement si la Freebox est "inutilisée".
 
 ## Comment savoir si la Freebox est inutilisée ?
-La Freebox sera considérée comme inutilisée si :
+La Freebox sera considérée (par le script) comme inutilisée si :
 - le débit (téléchargement) est inférieur à un seuil
 - le TV player n'est pas allumé (donc la TV n'est pas en cours de visionnage)
-- aucun enregistrement n'est en cours ou planifié durant l’intervalle de mise hors tension de la Freebox.
+- aucun enregistrement n'est en cours ou ne démarrera durant l’intervalle de mise hors tension de la Freebox.
 
 ## Que dois-je paramétrer ?
 Les variables :
