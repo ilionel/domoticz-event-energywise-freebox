@@ -61,19 +61,25 @@ Calling Python's print function will not print to the domoticz console, see belo
 import datetime
 import DomoticzEvents as DE
 
-SLEEP_TIME = '23:00'
-WAKEUP_TIME = '06:45'
+# > Weekday = (' Sun ', ' Mon ', ' Tue ', ' Wed ', ' Thu ', ' Fri ', ' Sat ')
+WEEK_SLEEP  = ('23:00', '23:00', '23:00', '23:00', '23:00', '23:30', '23:30')
+WEEK_WAKEUP = ('08:00', '06:45', '06:45', '06:45', '06:45', '06:45', '08:00')
 RATE_LIMIT = 100 # in Ko
+SWITCH_FREEBOX = "Freebox"
 
 now = datetime.datetime.now()
+day = now.strftime("%w") # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
 
-def diff_time (begin=SLEEP_TIME, end=WAKEUP_TIME):
+sleep_time = WEEK_SLEEP[day]
+wakeup_time = WEEK_WAKEUP[day]
+
+def diff_time (begin=sleep_time, end=wakeup_time):
     """
     number of sec between two clock : end - begin
 
     Args:
-        begin (str, optional): '%H:%M'. Defaults to SLEEP_TIME.
-        end (str, optional): '%H:%M'. Defaults to WAKEUP_TIME.
+        begin (str, optional): '%H:%M'. Defaults to sleep_time.
+        end (str, optional): '%H:%M'. Defaults to wakeup_time.
 
     Returns:
         int: seconds from begin to end
@@ -107,7 +113,7 @@ def is_ready_shut(DE, rate_limit, wake_after):
         )
     return res
 
-def shutdown(DE, device="Freebox"):
+def shutdown(DE, device=SWITCH_FREEBOX):
     """
     shutdown device
 
@@ -118,7 +124,7 @@ def shutdown(DE, device="Freebox"):
         DE.Log("Bonne nuit Free!")
         DE.Command(device, "Off")
 
-def wakeup(DE, device="Freebox"):
+def wakeup(DE, device=SWITCH_FREEBOX):
     """
     wake up device
 
@@ -128,10 +134,10 @@ def wakeup(DE, device="Freebox"):
     if DE.Devices[device].n_value_string == "Off":
         DE.Command(device, "On")
 
-if now.strftime('%H:%M') == SLEEP_TIME:
+if now.strftime('%H:%M') == sleep_time:
     DE.Log("It's time to sleep")
     if is_ready_shut(DE, RATE_LIMIT, diff_time()):
         shutdown(DE)
-elif now.strftime('%H:%M') == WAKEUP_TIME:
+elif now.strftime('%H:%M') == wakeup_time:
     DE.Log("It's time to wakeup")
     wakeup(DE)

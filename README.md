@@ -17,14 +17,17 @@ La Freebox sera considérée (par le script) comme inutilisée si :
 
 ## Que dois-je paramétrer ?
 Les variables :
-- SLEEP_TIME
-- WAKEUP_TIME 
+- WEEK_SLEEP (pour chaque jour de la semaine)
+- WEEK_WAKEUP (pour chaque jour de la semaine)
+ 
  en fonction de horaire d’extinction et de redémarrage de la Freebox
 
 - RATE_LIMIT
+
 en valeur de téléchargement en ko/s en dessous de laquelle la Freebox peut être coupée
 
 - SWITCH_FREEBOX
+
 le nom de l’interrupteur (dans Domoticz) sur lequel la Freebox est branchée
 
 Le script fonctionne avec le nom par défaut donné (par PluginDomoticzFreebox) aux équipements de la Freebox. Si vous les avez renommés, il faudra répercuter également ces changements dans le script.
