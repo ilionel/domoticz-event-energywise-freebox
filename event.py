@@ -68,7 +68,7 @@ RATE_LIMIT = 100 # in Ko
 SWITCH_FREEBOX = "Freebox"
 
 now = datetime.datetime.now()
-day = now.strftime("%w") # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
+day = int(float(now.strftime("%w"))) # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
 
 sleep_time = WEEK_SLEEP[day]
 wakeup_time = WEEK_WAKEUP[day]
