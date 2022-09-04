@@ -63,15 +63,18 @@ import DomoticzEvents as DE
 
 # > Weekday = (' Sun ', ' Mon ', ' Tue ', ' Wed ', ' Thu ', ' Fri ', ' Sat ')
 WEEK_SLEEP  = ('23:00', '23:00', '23:00', '23:00', '23:00', '23:30', '23:30')
-WEEK_WAKEUP = ('08:00', '06:45', '06:45', '06:45', '06:45', '06:45', '08:00')
+WEEK_BOOT   = ('08:00', '06:45', '06:45', '06:45', '06:45', '06:45', '08:00')
+WEEK_WAKEUP = ('08:00', '17:45', '17:45', '17:45', '17:45', '17:45', '08:00')
 RATE_LIMIT = 100 # in Ko
-SWITCH_FREEBOX = "Freebox"
+SWITCH_FREEBOX = "Freebox" # Virtual switch connect to Domoticz groupe that include Freebox-Server, TV, TV player...
+SWITCH_INTERNET = "Freebox-Server" # Domoticz device name of Smartplug connecting Freebox-server
 
 now = datetime.datetime.now()
 day = int(float(now.strftime("%w"))) # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
 
 sleep_time = WEEK_SLEEP[day]
 wakeup_time = WEEK_WAKEUP[day]
+boot_time = WEEK_BOOT[day] if WEEK_BOOT is not None else None
 
 def diff_time (begin=sleep_time, end=wakeup_time):
     """
@@ -131,7 +134,7 @@ def wakeup(DE, device=SWITCH_FREEBOX):
     Args:
         device (str, optional): device to wake up. Defaults to "Freebox".
     """
-    if DE.Devices[device].n_value_string == "Off":
+    if DE.Devices[device].n_value_string != "On":
         DE.Command(device, "On")
 
 if now.strftime('%H:%M') == sleep_time:
@@ -141,3 +144,6 @@ if now.strftime('%H:%M') == sleep_time:
 elif now.strftime('%H:%M') == wakeup_time:
     DE.Log("It's time to wakeup")
     wakeup(DE)
+elif SWITCH_INTERNET is not None and now.strftime('%H:%M') == boot_time:
+    DE.Log("It's time to power on Internet")
+    wakeup(DE, SWITCH_INTERNET)
