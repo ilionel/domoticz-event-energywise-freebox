@@ -62,12 +62,14 @@ import datetime
 import DomoticzEvents as DE
 
 # > Weekday = (' Sun ', ' Mon ', ' Tue ', ' Wed ', ' Thu ', ' Fri ', ' Sat ')
-WEEK_SLEEP  = ('23:00', '23:00', '23:00', '23:00', '23:00', '23:30', '23:30')
+WEEK_SLEEP  = ('22:30', '22:30', '22:30', '22:30', '22:30', '23:00', '23:00')
 WEEK_BOOT   = ('08:00', '06:45', '06:45', '06:45', '06:45', '06:45', '08:00')
 WEEK_WAKEUP = ('08:00', '17:45', '17:45', '17:45', '17:45', '17:45', '08:00')
 RATE_LIMIT = 100 # in Ko
-SWITCH_FREEBOX = "Freebox" # Virtual switch connect to Domoticz groupe that include Freebox-Server, TV, TV player...
-SWITCH_INTERNET = "Freebox-Server" # Domoticz device name of Smartplug connecting Freebox-server
+SWITCH_FREEBOX = "Freebox"  # Switch (or virtual switch) connected to Domoticz group,
+                            # that power on/off Freebox, TV player, TV...
+SWITCH_INTERNET = "Freebox-Server" # (optional) Domoticz device name of Smartplug connecting Freebox-server
+SLIPPAGE = 3600 # (in seconds) time slot (after o'clock) allowing sleepmode. /!\ Value need to be < 12h
 
 now = datetime.datetime.now()
 day = int(float(now.strftime("%w"))) # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
@@ -92,28 +94,32 @@ def diff_time (begin=sleep_time, end=wakeup_time):
     stop_h, stop_m = int(float(stop[0])), int(float(stop[1]))
     delta = (stop_h * 60 + stop_m) - (start_h * 60 + start_m)
     if delta < 0:
-        delta = delta + 1440
-    return delta * 60
+        delta = delta + 1440 # add 24h in minutes = 1440
+    return delta * 60 # in seconds
 
 def is_ready_shut(DE, rate_limit, wake_after):
     """
-    Can I shutdown the Freebox?
+    Can I shutdown Freebox?
 
     Args:
-        rate_limit (int): dl / ul limit (in ko/s). If limit is reach Freebox isn't ready to shutdown
-        wake_after (int): how long (in second)
+        rate_limit (int): dl / ul limit (in ko/s). If limit is reach then Freebox isn't ready to shutdown
+        wake_after (int): shutdown duration (in second)
 
     Returns:
         bool: False if Freebox is used else True
     """
-    res = DE.Devices["Freebox - API - Freebox Player 1"].n_value_string == "Off" \
-    and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit \
-    and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit \
-    and (
-        DE.Devices["Freebox - API - Next Record In"].n_value == -1
-        or
-        DE.Devices["Freebox - API - Next Record In"].n_value > wake_after
-        )
+    res = DE.Devices["Freebox - API - Débit download"].n_value < rate_limit \
+        and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
+    if DE.Devices["Freebox - API - Freebox Player 1"]:
+        res = res \
+            and DE.Devices["Freebox - API - Freebox Player 1"].n_value_string == "Off" \
+            and (
+                DE.Devices["Freebox - API - Next Record In"].n_value == -1
+                or
+                DE.Devices["Freebox - API - Next Record In"].n_value > wake_after
+                )
+    if DE.Devices["Freebox - API - Freebox Player 2"]:
+        res = res and DE.Devices["Freebox - API - Freebox Player 2"].n_value_string == "Off"
     return res
 
 def shutdown(DE, device=SWITCH_FREEBOX):
@@ -123,8 +129,8 @@ def shutdown(DE, device=SWITCH_FREEBOX):
     Args:
         device (str, optional): device to shutdown. Defaults to "Freebox".
     """
-    if DE.Devices[device].n_value_string == "On":
-        DE.Log("Bonne nuit Free!")
+    if DE.Devices[device].n_value_string != "Off":
+        DE.Log("Good night!")
         DE.Command(device, "Off")
 
 def wakeup(DE, device=SWITCH_FREEBOX):
@@ -135,9 +141,11 @@ def wakeup(DE, device=SWITCH_FREEBOX):
         device (str, optional): device to wake up. Defaults to "Freebox".
     """
     if DE.Devices[device].n_value_string != "On":
+        DE.Log("Good morning!")
         DE.Command(device, "On")
 
-if now.strftime('%H:%M') == sleep_time:
+SLEEP_COUNTDOWN = diff_time(sleep_time, now.strftime('%H:%M'))
+if now.strftime('%H:%M') == sleep_time or SLEEP_COUNTDOWN < SLIPPAGE:
     DE.Log("It's time to sleep")
     if is_ready_shut(DE, RATE_LIMIT, diff_time()):
         shutdown(DE)
