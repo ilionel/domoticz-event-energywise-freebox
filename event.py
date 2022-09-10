@@ -68,6 +68,7 @@ WEEK_WAKEUP = ('08:00', '17:45', '17:45', '17:45', '17:45', '17:45', '08:00')
 RATE_LIMIT = 100 # in Ko
 SWITCH_FREEBOX = "Freebox"  # Switch (or virtual switch) connected to Domoticz group,
                             # that power on/off Freebox, TV player, TV...
+SWITCH_NOSLEEP = "Freebox - insomnie" # Virtual switch. If switch is "On" then prevent to sleep
 SWITCH_INTERNET = "Freebox-Server" # (optional) Domoticz device name of Smartplug connecting Freebox-server
 SLIPPAGE = 3600 # (in seconds) time slot (after o'clock) allowing sleepmode. /!\ Value need to be < 12h
 
@@ -97,7 +98,7 @@ def diff_time (begin=sleep_time, end=wakeup_time):
         delta = delta + 1440 # add 24h in minutes = 1440
     return delta * 60 # in seconds
 
-def is_ready_shut(DE, rate_limit, wake_after):
+def is_ready_shut(DE, rate_limit, wake_after, no_sleep):
     """
     Can I shutdown Freebox?
 
@@ -108,18 +109,24 @@ def is_ready_shut(DE, rate_limit, wake_after):
     Returns:
         bool: False if Freebox is used else True
     """
-    res = DE.Devices["Freebox - API - Débit download"].n_value < rate_limit \
+    res = True if no_sleep is not None and DE.Devices[no_sleep].n_value_string == "Off" \
+               else False
+    res = res \
+        and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit \
         and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
-    if DE.Devices["Freebox - API - Freebox Player 1"]:
-        res = res \
-            and DE.Devices["Freebox - API - Freebox Player 1"].n_value_string == "Off" \
-            and (
-                DE.Devices["Freebox - API - Next Record In"].n_value == -1
-                or
-                DE.Devices["Freebox - API - Next Record In"].n_value > wake_after
-                )
-    if DE.Devices["Freebox - API - Freebox Player 2"]:
-        res = res and DE.Devices["Freebox - API - Freebox Player 2"].n_value_string == "Off"
+    try:
+        if DE.Devices["Freebox - API - Freebox Player 1"]:
+            res = res \
+                and DE.Devices["Freebox - API - Freebox Player 1"].n_value_string == "Off" \
+                and (
+                    DE.Devices["Freebox - API - Next Record In"].n_value == -1
+                    or
+                    DE.Devices["Freebox - API - Next Record In"].n_value > wake_after
+                    )
+        if DE.Devices["Freebox - API - Freebox Player 2"]:
+            res = res and DE.Devices["Freebox - API - Freebox Player 2"].n_value_string == "Off"
+    except KeyError:
+        pass
     return res
 
 def shutdown(DE, device=SWITCH_FREEBOX):
@@ -147,7 +154,8 @@ def wakeup(DE, device=SWITCH_FREEBOX):
 SLEEP_COUNTDOWN = diff_time(sleep_time, now.strftime('%H:%M'))
 if now.strftime('%H:%M') == sleep_time or SLEEP_COUNTDOWN < SLIPPAGE:
     DE.Log("It's time to sleep")
-    if is_ready_shut(DE, RATE_LIMIT, diff_time()):
+    switch_nosleep = None if SWITCH_NOSLEEP is None or SWITCH_NOSLEEP == "" else SWITCH_NOSLEEP
+    if is_ready_shut(DE, RATE_LIMIT, diff_time(), switch_nosleep):
         shutdown(DE)
 elif now.strftime('%H:%M') == wakeup_time:
     DE.Log("It's time to wakeup")

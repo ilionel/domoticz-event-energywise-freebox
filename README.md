@@ -20,11 +20,13 @@ La Freebox sera considérée comme inutilisée si :
 Les variables :
 - WEEK_SLEEP (horaire : pour chaque jour de la semaine)
 - WEEK_WAKEUP (horaire : pour chaque jour de la semaine)
+- SWITCH_NOSLEEP (optionnel, nom du switch virtuel domoticz)
 - WEEK_BOOT (optionnel, horaire : pour chaque jour de la semaine)
 - SLIPPAGE (optionnel, en seconde)
  
  en fonction de l’horaire d’extinction (WEEK_SLEEP) et de redémarrage (WEEK_WAKEUP) de la Freebox.
- Notes: 
+ Notes:
+  - La variable "SWITCH_NOSLEEP" permet, connecter à un switch viruel Domoticz, de suspendre la mise en veille si le switch est activé. Cela permet de suspendre la mise en veille automatique (utile si l'on souhaite veiller exceptionnellement plus tard)
   - La variable "WEEK_BOOT" permet de redémarrer expressément le "Freebox-Server" et non pas l’intégralité des équipements liés à la Freebox (Player TV, TV...). Cela nécessite d'avoir un second smartplug.
   - La variable "SLIPPAGE" permet de mettre de reporter la mise en veille si la Freebox utilisé. Une fois le l'heure sera dépassé du nombre de secondes correspondant à "SLIPPAGE" la mise en veille ne sera plus retentée
 
