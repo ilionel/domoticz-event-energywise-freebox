@@ -1,4 +1,6 @@
 # domoticz-event-energywise-freebox
+
+[![CI](https://github.com/ilionel/domoticz-event-energywise-freebox/actions/workflows/ci.yml/badge.svg)](https://github.com/ilionel/domoticz-event-energywise-freebox/actions/workflows/ci.yml)
 Script python de type « domoticz  events». Ce script permet éteindre (grâce à un smartplug) la Freebox durant la nuit (mais uniquement si elle n’est pas utilisée).
 
 Une Freebox (révolution) consomme environ 150kW/an (soit environ 2eur/mois). Ce script vous permet de réaliser des économies d’exergie en pilotant l’extension puis l’allumage de la Freebox.
@@ -42,3 +44,12 @@ Remarque: La variable "SWITCH_INTERNET" permet de définir l’interrupteur sur 
 
 ### Remarque :
 Le script fonctionne avec les noms par défauts donnés aux composants (devices dans Domoticz) de la Freebox. Le nommage effectué par "PluginDomoticzFreebox" (qui est indispensable au bon fonctionnement de ce script). Si vous les avez renommés, il faudra répercuter les changements avant d'utiliser le script.
+
+## Développement
+
+Lint & format via [ruff](https://docs.astral.sh/ruff/) (config dans `pyproject.toml`),
+vérifiés automatiquement en CI :
+
+```sh
+ruff check . && ruff format --check .
+```
