@@ -73,11 +73,11 @@ SWITCH_INTERNET = "Freebox-Server" # (optional) Domoticz device name of Smartplu
 SLIPPAGE = 3600 # (in seconds) time slot (after o'clock) allowing sleepmode. /!\ Value need to be < 12h
 
 now = datetime.datetime.now()
-day = int(float(now.strftime("%w"))) # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
+day = int(now.strftime("%w")) # Weekday (as integer) -> 0=Sun, 1=Mon, 2=Tue...
 
 sleep_time = WEEK_SLEEP[day]
 wakeup_time = WEEK_WAKEUP[day]
-boot_time = WEEK_BOOT[day] if WEEK_BOOT is not None else None
+boot_time = WEEK_BOOT[day]
 
 def diff_time (begin=sleep_time, end=wakeup_time):
     """
@@ -91,8 +91,8 @@ def diff_time (begin=sleep_time, end=wakeup_time):
         int: seconds from begin to end
     """
     start, stop = begin.split(':'), end.split(':')
-    start_h, start_m = int(float(start[0])), int(float(start[1]))
-    stop_h, stop_m = int(float(stop[0])), int(float(stop[1]))
+    start_h, start_m = int(start[0]), int(start[1])
+    stop_h, stop_m = int(stop[0]), int(stop[1])
     delta = (stop_h * 60 + stop_m) - (start_h * 60 + start_m)
     if delta < 0:
         delta = delta + 1440 # add 24h in minutes = 1440
@@ -109,8 +109,7 @@ def is_ready_shut(DE, rate_limit, wake_after, no_sleep):
     Returns:
         bool: False if Freebox is used else True
     """
-    res = True if no_sleep is not None and DE.Devices[no_sleep].n_value_string == "Off" \
-               else False
+    res = no_sleep is not None and DE.Devices[no_sleep].n_value_string == "Off"
     res = res \
         and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit \
         and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
