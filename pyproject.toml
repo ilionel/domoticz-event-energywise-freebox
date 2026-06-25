@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+# Domoticz injects DE / globals at runtime; this is a single-script event handler.
+
+[tool.ruff.format]
+quote-style = "double"
