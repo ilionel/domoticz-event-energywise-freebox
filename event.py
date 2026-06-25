@@ -61,7 +61,10 @@ Calling Python's print function will not print to the domoticz console, see belo
 
 import datetime
 
-import DomoticzEvents as DE
+try:
+    import DomoticzEvents as DE
+except ImportError:  # importable for unit tests outside Domoticz
+    DE = None
 
 # > Weekday = (' Sun ', ' Mon ', ' Tue ', ' Wed ', ' Thu ', ' Fri ', ' Sat ')
 WEEK_SLEEP = ("22:30", "22:30", "22:30", "22:30", "22:30", "23:00", "23:00")
@@ -164,15 +167,16 @@ def wakeup(DE, device=SWITCH_FREEBOX):
         DE.Command(device, "On")
 
 
-SLEEP_COUNTDOWN = diff_time(sleep_time, now.strftime("%H:%M"))
-if now.strftime("%H:%M") == sleep_time or SLEEP_COUNTDOWN < SLIPPAGE:
-    DE.Log("It's time to sleep")
-    switch_nosleep = None if SWITCH_NOSLEEP is None or SWITCH_NOSLEEP == "" else SWITCH_NOSLEEP
-    if is_ready_shut(DE, RATE_LIMIT, diff_time(), switch_nosleep):
-        shutdown(DE)
-elif now.strftime("%H:%M") == wakeup_time:
-    DE.Log("It's time to wakeup")
-    wakeup(DE)
-elif SWITCH_INTERNET is not None and now.strftime("%H:%M") == boot_time:
-    DE.Log("It's time to power on Internet")
-    wakeup(DE, SWITCH_INTERNET)
+if DE is not None:  # the schedule logic only runs inside Domoticz (DE provided)
+    SLEEP_COUNTDOWN = diff_time(sleep_time, now.strftime("%H:%M"))
+    if now.strftime("%H:%M") == sleep_time or SLEEP_COUNTDOWN < SLIPPAGE:
+        DE.Log("It's time to sleep")
+        switch_nosleep = None if SWITCH_NOSLEEP is None or SWITCH_NOSLEEP == "" else SWITCH_NOSLEEP
+        if is_ready_shut(DE, RATE_LIMIT, diff_time(), switch_nosleep):
+            shutdown(DE)
+    elif now.strftime("%H:%M") == wakeup_time:
+        DE.Log("It's time to wakeup")
+        wakeup(DE)
+    elif SWITCH_INTERNET is not None and now.strftime("%H:%M") == boot_time:
+        DE.Log("It's time to power on Internet")
+        wakeup(DE, SWITCH_INTERNET)
