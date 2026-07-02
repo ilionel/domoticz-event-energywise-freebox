@@ -59,6 +59,7 @@ TODO: setting variables
 Calling Python's print function will not print to the domoticz console, see below
 """
 
+import contextlib
 import datetime
 
 try:
@@ -121,14 +122,13 @@ def is_ready_shut(DE, rate_limit, wake_after, no_sleep):
         bool: False if Freebox is used else True
     """
     res = no_sleep is None or DE.Devices[no_sleep].n_value_string == "Off"
-    try:
+    # rate devices not configured: skip the bandwidth check
+    with contextlib.suppress(KeyError):
         res = (
             res
             and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit
             and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
         )
-    except KeyError:  # rate devices not configured: skip the bandwidth check
-        pass
     try:
         if DE.Devices["Freebox - API - Freebox Player 1"]:
             res = (
