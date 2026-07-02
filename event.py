@@ -120,12 +120,15 @@ def is_ready_shut(DE, rate_limit, wake_after, no_sleep):
     Returns:
         bool: False if Freebox is used else True
     """
-    res = no_sleep is not None and DE.Devices[no_sleep].n_value_string == "Off"
-    res = (
-        res
-        and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit
-        and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
-    )
+    res = no_sleep is None or DE.Devices[no_sleep].n_value_string == "Off"
+    try:
+        res = (
+            res
+            and DE.Devices["Freebox - API - Débit download"].n_value < rate_limit
+            and DE.Devices["Freebox - API - Débit upload"].n_value < rate_limit
+        )
+    except KeyError:  # rate devices not configured: skip the bandwidth check
+        pass
     try:
         if DE.Devices["Freebox - API - Freebox Player 1"]:
             res = (
